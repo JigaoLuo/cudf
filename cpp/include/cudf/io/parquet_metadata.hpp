@@ -212,6 +212,21 @@ class parquet_metadata {
   {
   }
 
+    parquet_metadata(parquet_schema schema,
+                   int64_t num_rows,
+                   size_type num_rowgroups,
+                   key_value_metadata file_metadata,
+                   std::vector<row_group_metadata> rg_metadata, 
+                   aggregate_reader_metadata metadata)
+    : _schema{std::move(schema)},
+      _num_rows{num_rows},
+      _num_rowgroups{num_rowgroups},
+      _file_metadata{file_metadata},
+      _rowgroup_metadata{rg_metadata},
+      metadata{metadata}
+  {
+  }
+
   /**
    * @brief Returns the parquet schema.
    *
@@ -249,12 +264,16 @@ class parquet_metadata {
    */
   [[nodiscard]] auto const& rowgroup_metadata() const { return _rowgroup_metadata; }
 
+  [[nodiscard]] auto const& aggregate_reader_metadata() const { return metadata; }
+
+
  private:
   parquet_schema _schema;
   int64_t _num_rows;
   size_type _num_rowgroups;
   key_value_metadata _file_metadata;
   std::vector<row_group_metadata> _rowgroup_metadata;
+  aggregate_reader_metadata metadata;
 };
 
 /**
