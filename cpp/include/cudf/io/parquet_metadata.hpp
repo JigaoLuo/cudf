@@ -23,6 +23,9 @@
 
 #include <cudf/io/types.hpp>
 #include <cudf/utilities/export.hpp>
+/// POC METADATA
+// #include "../../../src/io/parquet/reader_impl_helpers.hpp"
+#include "io/parquet/reader_impl_helpers.hpp"
 
 #include <optional>
 #include <string_view>
@@ -183,6 +186,8 @@ class parquet_metadata {
   /// row group metadata from each RowGroup element.
   using row_group_metadata = std::unordered_map<std::string, int64_t>;
 
+  /// POC METADATA
+  using aggregate_reader_metadata = parquet::detail::aggregate_reader_metadata;
   /**
    * @brief Default constructor.
    *
@@ -212,18 +217,19 @@ class parquet_metadata {
   {
   }
 
+    /// POC METADATA
     parquet_metadata(parquet_schema schema,
                    int64_t num_rows,
                    size_type num_rowgroups,
                    key_value_metadata file_metadata,
                    std::vector<row_group_metadata> rg_metadata, 
-                   aggregate_reader_metadata metadata)
+                   aggregate_reader_metadata aggregate_reader_metadata)
     : _schema{std::move(schema)},
       _num_rows{num_rows},
       _num_rowgroups{num_rowgroups},
       _file_metadata{file_metadata},
       _rowgroup_metadata{rg_metadata},
-      metadata{metadata}
+      _aggregate_reader_metadata{aggregate_reader_metadata}
   {
   }
 
@@ -264,7 +270,8 @@ class parquet_metadata {
    */
   [[nodiscard]] auto const& rowgroup_metadata() const { return _rowgroup_metadata; }
 
-  [[nodiscard]] auto const& aggregate_reader_metadata() const { return metadata; }
+  /// POC METADATA
+  [[nodiscard]] auto const& get_aggregate_reader_metadata() const { return _aggregate_reader_metadata; }
 
 
  private:
@@ -273,7 +280,7 @@ class parquet_metadata {
   size_type _num_rowgroups;
   key_value_metadata _file_metadata;
   std::vector<row_group_metadata> _rowgroup_metadata;
-  aggregate_reader_metadata metadata;
+  aggregate_reader_metadata _aggregate_reader_metadata;  /// POC METADATA
 };
 
 /**

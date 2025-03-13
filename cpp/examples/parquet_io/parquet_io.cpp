@@ -46,8 +46,33 @@
 cudf::io::table_with_metadata read_parquet(std::string filepath)
 {
   auto source_info = cudf::io::source_info(filepath);
+
+  /// POC METADATA
+  auto parquet_metadata   = cudf::io::read_parquet_metadata(cudf::io::source_info{filepath});
+  auto aggregate_reader_metadata = parquet_metadata.get_aggregate_reader_metadata();
+  std::cout << "aggregate_reader_metadata::get_num_rows: " << aggregate_reader_metadata.get_num_rows() << std::endl;
+  std::cout << "aggregate_reader_metadata::get_num_row_groups: " << aggregate_reader_metadata.get_num_row_groups() << std::endl;
+
+  // NORMAL READ
+  for (int i = 0; i < 10; i++) {
+    auto builder     = cudf::io::parquet_reader_options::builder(source_info);
+    auto options     = builder.build();
+    options.set_columns({"l_orderkey"});
+    cudf::io::read_parquet(options);
+  }
+
+  // READ WITH METADATA CACHING
+  for (int i = 0; i < 10; i++) {
+    auto builder     = cudf::io::parquet_reader_options::builder(source_info);
+    auto options     = builder.build();
+    options.set_columns({"l_orderkey"});
+    options.set_aggregate_reader_metadata(aggregate_reader_metadata);
+    cudf::io::read_parquet(options);
+  }
+
   auto builder     = cudf::io::parquet_reader_options::builder(source_info);
   auto options     = builder.build();
+  options.set_columns({"l_orderkey"});
   return cudf::io::read_parquet(options);
 }
 
@@ -150,27 +175,29 @@ int main(int argc, char const** argv)
                "times for nvcomp, cufile loading and RMM growth.\n\n";
   auto [input, metadata] = read_parquet(input_filepath);
 
-  // Status string to indicate if page stats are set to be written or not
-  auto page_stat_string = (page_stats.has_value()) ? "page stats" : "no page stats";
-  // Write parquet file with the specified encoding and compression
-  std::cout << "Writing " << output_filepath << " with encoding, compression and "
-            << page_stat_string << "..\n";
+  std::cout << "ENDS" << std::endl;
 
-  // `timer` is automatically started here
-  cudf::examples::timer timer;
-  write_parquet(input->view(), metadata, output_filepath, encoding, compression, page_stats);
-  timer.print_elapsed_millis();
+  // // Status string to indicate if page stats are set to be written or not
+  // auto page_stat_string = (page_stats.has_value()) ? "page stats" : "no page stats";
+  // // Write parquet file with the specified encoding and compression
+  // std::cout << "Writing " << output_filepath << " with encoding, compression and "
+  //           << page_stat_string << "..\n";
 
-  // Read the parquet file written with encoding and compression
-  std::cout << "Reading " << output_filepath << "...\n";
+  // // `timer` is automatically started here
+  // cudf::examples::timer timer;
+  // write_parquet(input->view(), metadata, output_filepath, encoding, compression, page_stats);
+  // timer.print_elapsed_millis();
 
-  // Reset the timer
-  timer.reset();
-  auto [transcoded_input, transcoded_metadata] = read_parquet(output_filepath);
-  timer.print_elapsed_millis();
+  // // Read the parquet file written with encoding and compression
+  // std::cout << "Reading " << output_filepath << "...\n";
 
-  // Check for validity
-  check_tables_equal(input->view(), transcoded_input->view());
+  // // Reset the timer
+  // timer.reset();
+  // auto [transcoded_input, transcoded_metadata] = read_parquet(output_filepath);
+  // timer.print_elapsed_millis();
+
+  // // Check for validity
+  // check_tables_equal(input->view(), transcoded_input->view());
 
   return 0;
 }

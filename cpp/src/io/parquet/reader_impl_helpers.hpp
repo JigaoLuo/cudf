@@ -287,6 +287,9 @@ class aggregate_reader_metadata {
     rmm::cuda_stream_view stream) const;
 
  public:
+  /// POC METADATA
+  explicit aggregate_reader_metadata() = default;
+ 
   aggregate_reader_metadata(host_span<std::unique_ptr<datasource> const> sources,
                             bool use_arrow_schema,
                             bool has_cols_from_mismatched_srcs);

@@ -23,6 +23,9 @@
 #include <cudf/types.hpp>
 #include <cudf/utilities/export.hpp>
 #include <cudf/utilities/memory_resource.hpp>
+/// POC METADATA
+// #include "../../../src/io/parquet/reader_impl_helpers.hpp"
+#include "io/parquet/reader_impl_helpers.hpp"
 
 #include <iostream>
 #include <memory>
@@ -49,6 +52,9 @@ constexpr size_t default_max_dictionary_size           = 1024 * 1024;  ///< 1MB 
 constexpr size_type default_max_page_fragment_size     = 5000;  ///< 5000 rows per page fragment
 
 class parquet_reader_options_builder;
+
+/// POC METADATA
+using aggregate_reader_metadata = parquet::detail::aggregate_reader_metadata;
 
 /**
  * @brief Settings for `read_parquet()`.
@@ -92,6 +98,10 @@ class parquet_reader_options {
   friend parquet_reader_options_builder;
 
  public:
+  /// POC METADATA
+  bool metadata_caching = false;
+  aggregate_reader_metadata _aggregate_reader_metadata;
+
   /**
    * @brief Default constructor.
    *
@@ -311,6 +321,12 @@ class parquet_reader_options {
    * @param type The timestamp data_type to which all timestamp columns need to be cast
    */
   void set_timestamp_type(data_type type) { _timestamp_type = type; }
+
+  /// POC METADATA
+  void set_aggregate_reader_metadata(aggregate_reader_metadata meta) { 
+    _aggregate_reader_metadata = meta; 
+    metadata_caching = true;  
+  }
 };
 
 /**

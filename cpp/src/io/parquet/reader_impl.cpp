@@ -528,11 +528,27 @@ reader::impl::impl(std::size_t chunk_read_limit,
     _output_chunk_read_limit{chunk_read_limit},
     _input_pass_read_limit{pass_read_limit}
 {
-  // Open and parse the source dataset metadata
-  _metadata = std::make_unique<aggregate_reader_metadata>(
-    _sources,
-    options.is_enabled_use_arrow_schema(),
-    options.get_columns().has_value() and options.is_enabled_allow_mismatched_pq_schemas());
+  /// POC METADATA
+  if (options.metadata_caching) {
+    nvtxEventAttributes_t eventAttrib = {0};
+    eventAttrib.version = NVTX_VERSION;
+    eventAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
+    eventAttrib.colorType = NVTX_COLOR_ARGB;
+    eventAttrib.color = 0xFFFF0000;
+    eventAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
+    eventAttrib.message.ascii = "Metadata Caching";
+    nvtxRangePushEx(&eventAttrib);
+    _metadata = std::make_unique<aggregate_reader_metadata>(std::move(options._aggregate_reader_metadata));
+    nvtxRangePop();
+  } else {
+    nvtxRangePushA("Open and parse the source dataset metadata"); 
+    // Open and parse the source dataset metadata
+    _metadata = std::make_unique<aggregate_reader_metadata>(
+      _sources,
+      options.is_enabled_use_arrow_schema(),
+      options.get_columns().has_value() and options.is_enabled_allow_mismatched_pq_schemas());
+    nvtxRangePop();
+  }
 
   // Strings may be returned as either string or categorical columns
   _strings_to_categorical = options.is_enabled_convert_strings_to_categories();
