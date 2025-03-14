@@ -529,26 +529,29 @@ reader::impl::impl(std::size_t chunk_read_limit,
     _input_pass_read_limit{pass_read_limit}
 {
   /// POC METADATA
-  if (options.metadata_caching) {
-    nvtxEventAttributes_t eventAttrib = {0};
+     nvtxEventAttributes_t eventAttrib = {0};
     eventAttrib.version = NVTX_VERSION;
     eventAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
     eventAttrib.colorType = NVTX_COLOR_ARGB;
     eventAttrib.color = 0xFFFF0000;
     eventAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
-    eventAttrib.message.ascii = "Metadata Caching";
+    eventAttrib.message.ascii = "Metadata Parsing";
     nvtxRangePushEx(&eventAttrib);
-    _metadata = std::make_unique<aggregate_reader_metadata>(std::move(options._aggregate_reader_metadata));
-    nvtxRangePop();
+  if (options._aggregate_reader_metadata != nullptr) {
+    /// Caching!
+    _metadata.make_raw_ptr(options._aggregate_reader_metadata);
   } else {
-    nvtxRangePushA("Open and parse the source dataset metadata"); 
     // Open and parse the source dataset metadata
-    _metadata = std::make_unique<aggregate_reader_metadata>(
+    _metadata.make_unique_ptr(
       _sources,
       options.is_enabled_use_arrow_schema(),
       options.get_columns().has_value() and options.is_enabled_allow_mismatched_pq_schemas());
-    nvtxRangePop();
+    // _metadata = std::make_unique<aggregate_reader_metadata>(
+    //   _sources,
+    //   options.is_enabled_use_arrow_schema(),
+    //   options.get_columns().has_value() and options.is_enabled_allow_mismatched_pq_schemas());
   }
+    nvtxRangePop();
 
   // Strings may be returned as either string or categorical columns
   _strings_to_categorical = options.is_enabled_convert_strings_to_categories();
@@ -658,7 +661,16 @@ table_with_metadata reader::impl::read_chunk_internal(read_mode mode)
   allocate_columns(mode, read_info.skip_rows, read_info.num_rows);
 
   // Parse data into the output buffers.
+    nvtxEventAttributes_t eventAttrib = {0};
+    eventAttrib.version = NVTX_VERSION;
+    eventAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
+    eventAttrib.colorType = NVTX_COLOR_ARGB;
+    eventAttrib.color = 0x00ffff;
+    eventAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
+    eventAttrib.message.ascii = "decode_page_data";
+    nvtxRangePushEx(&eventAttrib);
   decode_page_data(mode, read_info.skip_rows, read_info.num_rows);
+    nvtxRangePop();
 
   // Create the final output cudf columns.
   for (size_t i = 0; i < _output_buffers.size(); ++i) {
@@ -760,6 +772,7 @@ table_with_metadata reader::impl::finalize_output(read_mode mode,
                                                   table_metadata& out_metadata,
                                                   std::vector<std::unique_ptr<column>>& out_columns)
 {
+    nvtxRangePushA("finalize_output");
   // Create empty columns as needed (this can happen if we've ended up with no actual data to read)
   for (size_t i = out_columns.size(); i < _output_buffers.size(); ++i) {
     if (!_output_metadata) {
@@ -803,6 +816,7 @@ table_with_metadata reader::impl::finalize_output(read_mode mode,
     if (_num_filter_only_columns > 0) { out_metadata.schema_info.resize(output_count); }
     return {std::move(output_table), std::move(out_metadata)};
   }
+      nvtxRangePop();
   return {std::make_unique<table>(std::move(out_columns)), std::move(out_metadata)};
 }
 

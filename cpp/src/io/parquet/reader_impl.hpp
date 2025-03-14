@@ -384,7 +384,36 @@ class reader::impl {
   named_to_reference_converter _expr_conv{std::nullopt, table_metadata{}};
 
   std::vector<std::unique_ptr<datasource>> _sources;
-  std::unique_ptr<aggregate_reader_metadata> _metadata;
+
+  /// POC METADATA
+  // std::unique_ptr<aggregate_reader_metadata> _metadata;
+  struct aggregate_reader_metadata_wrapper {
+      aggregate_reader_metadata_wrapper() {}
+      aggregate_reader_metadata_wrapper(host_span<std::unique_ptr<datasource> const> sources, bool use_arrow_schema, bool has_cols_from_mismatched_srcs) 
+      : useUniquePtr(true) {
+        uniquePtr = std::make_unique<aggregate_reader_metadata>(sources, use_arrow_schema, has_cols_from_mismatched_srcs);
+      }
+      ~aggregate_reader_metadata_wrapper() {
+          if (useUniquePtr) {
+              uniquePtr.reset();
+          } else {
+              // delete rawPtr; No delete :)
+          }
+      }
+      aggregate_reader_metadata* operator->() { return useUniquePtr ? uniquePtr.get() : rawPtr; }
+      aggregate_reader_metadata& operator*() { return useUniquePtr ? *uniquePtr : *rawPtr; }
+      aggregate_reader_metadata* operator&() { return useUniquePtr ? uniquePtr.get() : rawPtr; }
+      
+      void make_unique_ptr(host_span<std::unique_ptr<datasource> const> sources, bool use_arrow_schema, bool has_cols_from_mismatched_srcs) { 
+        useUniquePtr = true; uniquePtr = std::make_unique<aggregate_reader_metadata>(sources, use_arrow_schema, has_cols_from_mismatched_srcs);
+      }
+      void make_raw_ptr(aggregate_reader_metadata* pointer) { useUniquePtr = false; rawPtr = pointer; }
+
+      bool useUniquePtr = true;
+      std::unique_ptr<aggregate_reader_metadata> uniquePtr;
+      aggregate_reader_metadata* rawPtr = nullptr;
+  };
+  aggregate_reader_metadata_wrapper _metadata;
 
   // input columns to be processed
   std::vector<input_column_info> _input_columns;

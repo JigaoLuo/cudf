@@ -99,8 +99,7 @@ class parquet_reader_options {
 
  public:
   /// POC METADATA
-  bool metadata_caching = false;
-  aggregate_reader_metadata _aggregate_reader_metadata;
+  aggregate_reader_metadata* _aggregate_reader_metadata = nullptr;
 
   /**
    * @brief Default constructor.
@@ -323,9 +322,8 @@ class parquet_reader_options {
   void set_timestamp_type(data_type type) { _timestamp_type = type; }
 
   /// POC METADATA
-  void set_aggregate_reader_metadata(aggregate_reader_metadata meta) { 
-    _aggregate_reader_metadata = meta; 
-    metadata_caching = true;  
+  void set_aggregate_reader_metadata(aggregate_reader_metadata& meta) { 
+    _aggregate_reader_metadata = &meta; 
   }
 };
 

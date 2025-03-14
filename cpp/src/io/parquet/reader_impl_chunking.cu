@@ -1277,7 +1277,16 @@ void reader::impl::setup_next_pass(read_mode mode)
 
     // load page information for the chunk. this retrieves the compressed bytes for all the
     // pages, and their headers (which we can access without decompressing)
+      nvtxEventAttributes_t eventAttrib = {0};
+      eventAttrib.version = NVTX_VERSION;
+      eventAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
+      eventAttrib.colorType = NVTX_COLOR_ARGB;
+      eventAttrib.color = 0x008000;
+      eventAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
+      eventAttrib.message.ascii = "read_compressed_data";
+      nvtxRangePushEx(&eventAttrib);
     read_compressed_data();
+      nvtxRangePop();
 
     // detect malformed columns.
     // - we have seen some cases in the wild where we have a row group containing N
@@ -1291,10 +1300,14 @@ void reader::impl::setup_next_pass(read_mode mode)
       uses_custom_row_bounds(mode) ? std::nullopt : std::make_optional(pass.num_rows),
       _stream);
 
+      eventAttrib.color = 0x00FFFF;
+      eventAttrib.message.ascii = "decompress_page_data in setup_next_pass";
+      nvtxRangePushEx(&eventAttrib);
     // decompress dictionary data if applicable.
     if (pass.has_compressed_data) {
       pass.decomp_dict_data = decompress_page_data(pass.chunks, pass.pages, true, _stream);
     }
+      nvtxRangePop();
 
     // store off how much memory we've used so far. This includes the compressed page data and the
     // decompressed dictionary data. we will subtract this from the available total memory for the
@@ -1453,10 +1466,19 @@ void reader::impl::setup_next_subpass(read_mode mode)
   std::transform(
     h_spans.begin(), h_spans.end(), subpass.column_page_count.begin(), get_span_size{});
 
+    nvtxEventAttributes_t eventAttrib = {0};
+    eventAttrib.version = NVTX_VERSION;
+    eventAttrib.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
+    eventAttrib.colorType = NVTX_COLOR_ARGB;
+    eventAttrib.color = 0x00FFFF;
+    eventAttrib.messageType = NVTX_MESSAGE_TYPE_ASCII;
+    eventAttrib.message.ascii = "decompress_page_data";
+    nvtxRangePushEx(&eventAttrib);
   // decompress the data for the pages in this subpass.
   if (pass.has_compressed_data) {
     subpass.decomp_page_data = decompress_page_data(pass.chunks, subpass.pages, false, _stream);
   }
+    nvtxRangePop();
 
   // buffers needed by the decode kernels
   {

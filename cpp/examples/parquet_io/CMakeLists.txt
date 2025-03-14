@@ -23,6 +23,12 @@ add_library(parquet_io_utils OBJECT common_utils.cpp io_source.cpp)
 # target_compile_features(parquet_io_utils PRIVATE cxx_std_17)
 target_link_libraries(parquet_io_utils PRIVATE cudf::cudf)
 
+# Build and install read_parquet
+add_executable(read_parquet read_parquet.cpp)
+target_link_libraries(read_parquet PRIVATE cudf::cudf nvToolsExt $<TARGET_OBJECTS:parquet_io_utils>)
+# target_compile_features(read_parquet PRIVATE cxx_std_17)
+install(TARGETS read_parquet DESTINATION bin/examples/libcudf)
+
 # Build and install parquet_io
 add_executable(parquet_io parquet_io.cpp)
 target_link_libraries(parquet_io PRIVATE cudf::cudf nvToolsExt $<TARGET_OBJECTS:parquet_io_utils>)
