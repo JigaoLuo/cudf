@@ -24,7 +24,6 @@
 #include <cudf/utilities/export.hpp>
 #include <cudf/utilities/memory_resource.hpp>
 /// POC METADATA
-// #include "../../../src/io/parquet/reader_impl_helpers.hpp"
 #include "io/parquet/reader_impl_helpers.hpp"
 
 #include <iostream>
