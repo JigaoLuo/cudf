@@ -295,7 +295,7 @@ int main(int argc, char const** argv)
     /// METADATA CACHING
     {
        auto parquet_metadata   = cudf::io::read_parquet_metadata(cudf::io::source_info{input_filepath});
-       auto aggregate_reader_metadata = parquet_metadata.get_aggregate_reader_metadata();
+       auto aggregate_reader_metadata_ptr = parquet_metadata.get_aggregate_reader_metadata_ptr();
 
        std::vector<cudf::io::parquet_reader_options> options_vec(thread_count);
        io_source parquet_source_mt(input_filepath, io_source_type, stream);
@@ -306,7 +306,7 @@ int main(int argc, char const** argv)
            // then the source_info is move-ed
            options_vec[i] = cudf::io::parquet_reader_options::builder(source_info_mt).columns({columns[i % columns.size()]}).build();  // move parquet_reader_options member once it’s built. 
             //   options_vec[i] = cudf::io::parquet_reader_options::builder(source_info_mt).build();  // move parquet_reader_options member once it’s built. 
-           options_vec[i].set_aggregate_reader_metadata(aggregate_reader_metadata);
+           options_vec[i].set_aggregate_reader_metadata(aggregate_reader_metadata_ptr);
        } 
        std::cout << "[META CACHING] Reading Parquet file **N times** on Pooled GPU Memory Multithreading&streams: " << input_filepath << std::endl; 
        // TODO: I just disabled iteration

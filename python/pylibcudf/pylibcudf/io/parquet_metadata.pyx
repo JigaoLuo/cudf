@@ -190,6 +190,8 @@ cdef class ParquetMetadata:
             for metadata in self.meta.rowgroup_metadata()
         ]
 
+    cpdef Py_ssize_t get_aggregate_reader_metadata_ptr(self):
+        return self.meta.get_aggregate_reader_metadata_ptr()
 
 cpdef ParquetMetadata read_parquet_metadata(SourceInfo src_info):
     """

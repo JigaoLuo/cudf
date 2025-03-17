@@ -1,5 +1,5 @@
 # Copyright (c) 2020-2025, NVIDIA CORPORATION.
-from libc.stdint cimport int64_t, uint8_t
+from libc.stdint cimport int64_t, uint8_t, uintptr_t
 from libcpp cimport bool
 from libcpp.functional cimport reference_wrapper
 from libcpp.map cimport map
@@ -50,6 +50,7 @@ cdef extern from "cudf/io/parquet.hpp" namespace "cudf::io" nogil:
         ) except +libcudf_exception_handler
         void enable_use_pandas_metadata(bool val) except +libcudf_exception_handler
         void set_timestamp_type(data_type type) except +libcudf_exception_handler
+        void set_aggregate_reader_metadata(uintptr_t meta_ptr)
 
         @staticmethod
         parquet_reader_options_builder builder(

@@ -1,6 +1,5 @@
 # Copyright (c) 2024-2025, NVIDIA CORPORATION.
-from libc.stdint cimport int64_t, uint8_t
-
+from libc.stdint cimport int64_t, uint8_t, uintptr_t
 from libcpp cimport bool
 from libcpp.memory cimport unique_ptr
 from libcpp.vector cimport vector
@@ -44,6 +43,7 @@ cdef class ParquetReaderOptions:
     cpdef void set_num_rows(self, size_type nrows)
     cpdef void set_skip_rows(self, int64_t skip_rows)
     cpdef void set_columns(self, list col_names)
+    cpdef void set_aggregate_reader_metadata(self, uintptr_t meta_ptr)
     cpdef void set_filter(self, Expression filter)
 
 cdef class ParquetReaderOptionsBuilder:

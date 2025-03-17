@@ -1,5 +1,6 @@
 # Copyright (c) 2024, NVIDIA CORPORATION.
 
+from libc.stdint cimport uintptr_t
 from pylibcudf.io.types cimport SourceInfo
 from pylibcudf.libcudf.io.parquet_metadata cimport(
     parquet_metadata,
@@ -46,6 +47,8 @@ cdef class ParquetMetadata:
     cpdef dict metadata(self)
 
     cpdef list rowgroup_metadata(self)
+
+    cpdef Py_ssize_t get_aggregate_reader_metadata_ptr(self)
 
 
 cpdef ParquetMetadata read_parquet_metadata(SourceInfo src_info)

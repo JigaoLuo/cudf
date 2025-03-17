@@ -49,9 +49,10 @@ cudf::io::table_with_metadata read_parquet(std::string filepath)
 
   /// POC METADATA
   auto parquet_metadata   = cudf::io::read_parquet_metadata(cudf::io::source_info{filepath});
-  auto aggregate_reader_metadata = parquet_metadata.get_aggregate_reader_metadata();
-  std::cout << "aggregate_reader_metadata::get_num_rows: " << aggregate_reader_metadata.get_num_rows() << std::endl;
-  std::cout << "aggregate_reader_metadata::get_num_row_groups: " << aggregate_reader_metadata.get_num_row_groups() << std::endl;
+  std::intptr_t aggregate_reader_metadata_ptr = parquet_metadata.get_aggregate_reader_metadata_ptr();
+  auto aggregate_reader_metadata_ptr_ = reinterpret_cast<cudf::io::parquet::detail::aggregate_reader_metadata*>(aggregate_reader_metadata_ptr);
+  std::cout << "aggregate_reader_metadata::get_num_rows: " << aggregate_reader_metadata_ptr_->get_num_rows() << std::endl;
+  std::cout << "aggregate_reader_metadata::get_num_row_groups: " << aggregate_reader_metadata_ptr_->get_num_row_groups() << std::endl;
 
   // NORMAL READ
   for (int i = 0; i < 10; i++) {
@@ -66,7 +67,7 @@ cudf::io::table_with_metadata read_parquet(std::string filepath)
     auto builder     = cudf::io::parquet_reader_options::builder(source_info);
     auto options     = builder.build();
     options.set_columns({"l_orderkey"});
-    options.set_aggregate_reader_metadata(aggregate_reader_metadata);
+    options.set_aggregate_reader_metadata(aggregate_reader_metadata_ptr);
     cudf::io::read_parquet(options);
   }
 

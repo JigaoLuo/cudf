@@ -324,6 +324,9 @@ class parquet_reader_options {
   void set_aggregate_reader_metadata(aggregate_reader_metadata& meta) { 
     _aggregate_reader_metadata = &meta; 
   }
+  void set_aggregate_reader_metadata(std::uintptr_t meta_ptr) { 
+    _aggregate_reader_metadata = reinterpret_cast<aggregate_reader_metadata*>(meta_ptr);
+  }
 };
 
 /**

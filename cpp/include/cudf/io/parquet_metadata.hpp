@@ -271,6 +271,7 @@ class parquet_metadata {
 
   /// POC METADATA
   [[nodiscard]] auto const& get_aggregate_reader_metadata() const { return _aggregate_reader_metadata; }
+  [[nodiscard]] std::uintptr_t get_aggregate_reader_metadata_ptr() const { return reinterpret_cast<std::uintptr_t>(&_aggregate_reader_metadata); }
 
 
  private:

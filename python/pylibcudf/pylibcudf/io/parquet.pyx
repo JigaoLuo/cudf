@@ -1,8 +1,6 @@
 # Copyright (c) 2024-2025, NVIDIA CORPORATION.
 from cython.operator cimport dereference
-
-from libc.stdint cimport int64_t, uint8_t
-
+from libc.stdint cimport int64_t, uint8_t, uintptr_t
 from libcpp cimport bool
 from libcpp.memory cimport unique_ptr, make_unique
 from libcpp.string cimport string
@@ -170,6 +168,8 @@ cdef class ParquetReaderOptions:
         """
         self.c_obj.set_filter(<expression &>dereference(filter.c_obj.get()))
 
+    cpdef void set_aggregate_reader_metadata(self, uintptr_t meta_ptr):
+        self.c_obj.set_aggregate_reader_metadata(meta_ptr)
 
 cdef class ParquetReaderOptionsBuilder:
     cpdef ParquetReaderOptionsBuilder convert_strings_to_categories(self, bool val):
