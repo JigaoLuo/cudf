@@ -1016,7 +1016,9 @@ void detect_malformed_pages(device_span<PageInfo const> pages,
                                                         compacted_row_counts_begin,
                                                         row_counts_nonzero{});
   if (compacted_row_counts_end != compacted_row_counts_begin) {
-    size_t const found_row_count  = cudf::detail::make_host_vector_sync(device_span<size_type const>{compacted_row_counts.data(), 1}, stream)[0];
+    size_t const found_row_count = cudf::detail::make_host_vector_sync(
+      device_span<size_type const>{compacted_row_counts.data(), 1}, stream)[0];
+
     // if we somehow don't match the expected row count from the row groups themselves
     if (expected_row_count.has_value()) {
       CUDF_EXPECTS(expected_row_count.value() == found_row_count,
